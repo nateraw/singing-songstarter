@@ -1,3 +1,4 @@
+flashy>=0.0.1
 audiocraft==1.2.0
 hf_transfer
 gradio

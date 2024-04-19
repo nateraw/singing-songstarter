@@ -1,0 +1,6 @@
+git+https://git@github.com/facebookresearch/audiocraft#egg=audiocraft
+hf_transfer
+gradio
+psola
+torchvision==0.16.0
+fire

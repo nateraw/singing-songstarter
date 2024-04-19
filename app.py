@@ -321,7 +321,7 @@ def main(model_id="nateraw/musicgen-songstarter-v0.2", max_batch_size=4, share=F
         ],
         outputs=[gr.Audio(label=("Input " if i == 0 else "") + f"Audio {i}") for i in range(pipeline.max_batch_size + 1)],
         title="🎶 Generate song ideas with musicgen-songstarter-v0.2 🎶",
-        description="Check out the repo [here](https://huggingface.co/nateraw/musicgen-songstarter-v0.2)",
+        description="Check out the model [here](https://huggingface.co/nateraw/musicgen-songstarter-v0.2) and the source code [here](https://github.com/nateraw/singing-songstarter).",
         examples=[
             ["hip hop, soul, piano, chords, jazz, neo jazz, G# minor, 140 bpm", None, "closest", False, 1, 8, True, 1.0, 250, 0.0, 3.0, "./samples", "loudness", -1],
             ["acoustic, guitar, melody, rnb, trap, E minor, 85 bpm", None, "closest", False, 1, 8, True, 1.0, 250, 0.0, 3.0, "./samples", "loudness", -1],
@@ -329,7 +329,8 @@ def main(model_id="nateraw/musicgen-songstarter-v0.2", max_batch_size=4, share=F
             ["drill, layered, melody, songstarters, trap, C# minor, 130 bpm", None, "closest", False, 1, 8, True, 1.0, 250, 0.0, 3.0, "./samples", "loudness", -1],
             ["hip hop, soul, rnb, neo soul, songstarters, B minor, 140 bpm", None, "closest", False, 1, 8, True, 1.0, 250, 0.0, 3.0, "./samples", "loudness", -1],
             ["music, mallets, bells, melody, dancehall, african, afropop & afrobeats", "./nate_is_singing_Gb_minor.wav", "Gb:min", False, 1, 7, True, 1.0, 250, 0.0, 4.5, "./samples", "loudness", -1],
-        ]
+        ],
+        cache_examples=False
     )
     interface.launch(share=share, debug=debug)
 

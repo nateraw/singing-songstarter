@@ -1,4 +1,4 @@
-git+https://git@github.com/facebookresearch/audiocraft#egg=audiocraft
+audiocraft==1.2.0
 hf_transfer
 gradio
 psola

@@ -1,3 +1,6 @@
+# Taken from this AMAZING blogpost by https://github.com/JanWilczek:
+# https://thewolfsound.com/how-to-auto-tune-your-voice-with-python/
+
 from functools import partial
 from pathlib import Path
 import argparse

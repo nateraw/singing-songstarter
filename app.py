@@ -158,7 +158,7 @@ class Pipeline:
         self,
         prompt,
         input_audio=None,
-        scale=None,
+        scale="closest",
         continuation=False,
         batch_size=1,
         duration=15,
@@ -174,8 +174,6 @@ class Pipeline:
         continuation_end=None,
     ):
         print("Prompt:", prompt)
-        if scale == "closest":
-            scale = None
 
         set_generation_params = lambda duration: self.model.set_generation_params(
             duration=duration,
@@ -198,13 +196,16 @@ class Pipeline:
             # Save a copy of the original input audio
             original_input_audio = input_audio.clone()
             print("Input audio shape:", input_audio.shape)
-            if scale is None:
-                print("Running pitch correction for 'closest' pitch")
-                input_audio = run_autotune(input_audio, sr, correction_method="closest")
+            if scale != "none":
+                if scale == "closest":
+                    print("Running pitch correction for 'closest' pitch")
+                    input_audio = run_autotune(input_audio, sr, correction_method="closest")
+                else:
+                    print("Running pitch correction for 'scale' pitch")
+                    input_audio = run_autotune(input_audio, sr, correction_method="scale", scale=scale)
+                print(f"...Done running pitch correction. Shape after is {input_audio.shape}.\n")
             else:
-                print("Running pitch correction for 'scale' pitch")
-                input_audio = run_autotune(input_audio, sr, correction_method="scale", scale=scale)
-            print(f"...Done running pitch correction. Shape after is {input_audio.shape}.\n")
+                print("Skipping pitch correction, as 'scale' was set to none")
             input_audio = input_audio[None] if input_audio.dim() == 2 else input_audio
 
             continuation_start = 0 if not continuation_start else continuation_start
@@ -290,14 +291,22 @@ class Pipeline:
         return to_return
 
 
+_description = """\
+Hum an idea ➡️ get an AI generated music sample. Check out the model [here](https://huggingface.co/nateraw/musicgen-songstarter-v0.2) and the source code [here](https://github.com/nateraw/singing-songstarter).
+
+The input audio will be pitch corrected unless you set `scale` to `"none"`. Set `scale` to `"closest"` to correct to nearest note (if unsure, use this). \
+Ideally, you figure out what key you're singing in and set `scale` to that, so it corrects to only notes in that scale. \
+It is incredibly important the audio passed to the model (which you'll get back as the first output) is clean in order to get good results. 🗑 in = 🗑 out.
+
+Enjoy ❤️"""
 def main(model_id="nateraw/musicgen-songstarter-v0.2", max_batch_size=4, share=False, debug=False):
     pipeline = Pipeline(model_id, max_batch_size)
     interface = gr.Interface(
         fn=pipeline.__call__,
         inputs=[
-            gr.Textbox(label="Prompt", placeholder="Enter your prompt here..."),
+            gr.Textbox(label="Prompt", placeholder="Enter your prompt here...", value="synth, hip hop, melody, dark"),
             gr.Audio(
-                sources=["microphone"],
+                sources=["microphone", "upload"],
                 waveform_options=gr.WaveformOptions(
                     waveform_color="#01C6FF",
                     waveform_progress_color="#0066B4",
@@ -306,7 +315,7 @@ def main(model_id="nateraw/musicgen-songstarter-v0.2", max_batch_size=4, share=F
                 ),
                 type="filepath",
             ),
-            gr.Dropdown(["closest", "A:maj", "A:min", "Bb:maj", "Bb:min", "B:maj", "B:min", "C:maj", "C:min", "Db:maj", "Db:min", "D:maj", "D:min", "Eb:maj", "Eb:min", "E:maj", "E:min", "F:maj", "F:min", "Gb:maj", "Gb:min", "G:maj", "G:min", "Ab:maj", "Ab:min"], label="Scale for pitch correction. Set to 'closest' if you don't know.", value="closest"),
+            gr.Dropdown(["closest", "none", "A:maj", "A:min", "Bb:maj", "Bb:min", "B:maj", "B:min", "C:maj", "C:min", "Db:maj", "Db:min", "D:maj", "D:min", "Eb:maj", "Eb:min", "E:maj", "E:min", "F:maj", "F:min", "Gb:maj", "Gb:min", "G:maj", "G:min", "Ab:maj", "Ab:min"], label="Scale for pitch correction. Set to 'closest' if you don't know.", value="closest"),
             gr.Checkbox(label="Is Continuation", value=False),
             gr.Slider(label="Batch Size", value=1, minimum=1, maximum=pipeline.max_batch_size, step=1),
             gr.Slider(label="Duration", value=15, minimum=4, maximum=30),
@@ -321,7 +330,7 @@ def main(model_id="nateraw/musicgen-songstarter-v0.2", max_batch_size=4, share=F
         ],
         outputs=[gr.Audio(label=("Input " if i == 0 else "") + f"Audio {i}") for i in range(pipeline.max_batch_size + 1)],
         title="🎶 Generate song ideas with musicgen-songstarter-v0.2 🎶",
-        description="Hum an idea ➡️ get an AI generated music sample. Check out the model [here](https://huggingface.co/nateraw/musicgen-songstarter-v0.2) and the source code [here](https://github.com/nateraw/singing-songstarter). I suggest setting duration to the same as your input audio duration.",
+        description=_description,
         examples=[
             ["synth, dark, hip hop, melody, trap", "./nate_is_singing_Gb_minor.wav", "Gb:min", False, 1, 7, True, 1.0, 250, 0.0, 3.0, "./samples", "loudness", -1],
             ["music, mallets, bells, melody, dancehall, african, afropop & afrobeats", "./nate_is_singing_Gb_minor.wav", "Gb:min", False, 1, 7, True, 1.0, 250, 0.0, 4.5, "./samples", "loudness", -1],
